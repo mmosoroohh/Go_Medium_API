@@ -22,7 +22,6 @@
 .idea/misc.xml
 .idea/modules.xml
 .idea/vcs.xml
-api/
 go.mod
 go.sum
-tests/
+.gitignore
