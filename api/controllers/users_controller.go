@@ -31,7 +31,7 @@ func (server *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	userCreated,err := user.SaveUser(server.DB)
+	userCreated, err := user.SaveUser(server.DB)
 
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
@@ -45,7 +45,7 @@ func (server *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 
-	users, err := user.FindAllUsers(server.DB)
+	users, err := user.AllUsers(server.DB)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
@@ -61,7 +61,7 @@ func (server *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := models.User{}
-	userGotten, err := user.FindUserByID(server.DB, uint32(uid))
+	userGotten, err := user.SingleUser(server.DB, uint32(uid))
 	if err != nil {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return
@@ -112,7 +112,7 @@ func (server *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *Server) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	vars : mux.Vars(r)
+	vars := mux.Vars(r)
 	user := models.User{}
 
 	uid, err := strconv.ParseUint(vars["id"], 10, 32)
@@ -137,4 +137,3 @@ func (server *Server) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Entity", fmt.Sprintf("%d", uid))
 	responses.JSON(w, http.StatusNoContent, "")
 }
-

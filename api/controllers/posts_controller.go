@@ -14,7 +14,7 @@ import (
 	"strconv"
 )
 
-func (server *Server) CreatePost(w http.ResponseWriter, r *http.Request)  {
+func (server *Server) CreatePost(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
@@ -53,7 +53,7 @@ func (server *Server) CreatePost(w http.ResponseWriter, r *http.Request)  {
 
 func (server *Server) GetPosts(w http.ResponseWriter, r *http.Request) {
 	post := models.Post{}
-	posts, err := post.FindAllPosts(server.DB)
+	posts, err := post.AllPosts(server.DB)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
@@ -70,7 +70,7 @@ func (server *Server) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 	post := models.Post{}
 
-	postReceived, err := post.FindPostByID(server.DB, pid)
+	postReceived, err := post.SinglePost(server.DB, pid)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
@@ -125,7 +125,7 @@ func (server *Server) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the request user id is equal to the one from the token
-	if uid !=postUpdate.AuthorID {
+	if uid != postUpdate.AuthorID {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unathorized"))
 		return
 	}

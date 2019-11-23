@@ -4,44 +4,56 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/joho/godotenv"
 	"github.com/mmosoroohh/Go_Medium_API/api/models"
 	"log"
-	"net"
 	"net/http"
+	"os"
 )
 
 type Server struct {
-	DB	*gorm.DB
-	Router	*mux.Router
+	DB     *gorm.DB
+	Router *mux.Router
 }
 
-func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName, string) {
+func (server *Server) Initialize() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Print(err)
+	}
 
-	var err error
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbDriver := os.Getenv("DB_DRIVER")
 
-	if Dbdriver == "mysql" {
-		DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
-		server.DB, err = gorm.Open(Dbdriver, DBURL)
+	if dbDriver == "mysql" {
+		DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s/%s?charset=utf8&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
+		server.DB, err = gorm.Open(dbDriver, DBURL)
 		if err != nil {
-			fmt.Printf("Cannot connect to %s database", Dbdriver)
+			fmt.Printf("Cannot connect to %s database", dbDriver)
 			log.Fatal("This is the error:", err)
 		} else {
-			fmt.Printf("We are now connected to %s database", Dbdriver)
+			fmt.Printf("We are now connected to %s database", dbDriver)
 		}
 	}
 
-	if Dbdriver == "postgres" {
-		DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
-		server.DB, err = gorm.Open(Dbdriver, DBURL)
+	if dbDriver == "postgres" {
+		DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s", dbHost, dbPort, dbUser, dbName)
+		server.DB, err = gorm.Open(dbDriver, DBURL)
 		if err != nil {
-			fmt.Printf("Cannot connect to %s database", Dbdriver)
+			fmt.Printf("Cannot connect to %s database", dbDriver)
 			log.Fatal("This is the error:", err)
 		} else {
-			fmt.Printf("We are now connected to the %s database", Dbdriver)
+			fmt.Printf("We are now connected to the %s database", dbDriver)
 		}
 	}
 
-	server.DB.Debug().AutoMigrate(&models.User{}, &models.Post{})	// Database migration
+	server.DB.Debug().AutoMigrate(&models.User{}, &models.Post{}) // Database migration
 
 	server.Router = mux.NewRouter()
 

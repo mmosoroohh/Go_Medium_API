@@ -57,7 +57,7 @@ func (p *Post) SavePost(db *gorm.DB) (*Post, error) {
 	return p, nil
 }
 
-func (p *Post) FindAllPosts(db *gorm.DB) (*[]Post, error) {
+func (p *Post) AllPosts(db *gorm.DB) (*[]Post, error) {
 	var err error
 	posts := []Post{}
 	err = db.Debug().Model(&Post{}).Limit(100).Find(&posts).Error

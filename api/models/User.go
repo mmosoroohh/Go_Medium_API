@@ -1,21 +1,21 @@
 package models
 
 import (
+	"errors"
 	"github.com/badoux/checkmail"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 	"html"
 	"log"
-	"time"
 	"strings"
-	"errors"
+	"time"
 )
 
 type User struct {
-	ID  uint32 `gorm:"primary_key;auto_increment" json:"id"`
-	Username string `gorm:"size:255;not null;unique" json:"username"`
-	Email string `gorm:"size:100;not null;unique" json:"email"`
-	Password string `gorm:"size:100;not null;" json:"password"`
+	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	Username  string    `gorm:"size:255;not null;unique" json:"username"`
+	Email     string    `gorm:"size:100;not null;unique" json:"email"`
+	Password  string    `gorm:"size:100;not null;" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -102,7 +102,7 @@ func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 	return u, nil
 }
 
-func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
+func (u *User) AllUsers(db *gorm.DB) (*[]User, error) {
 	var err error
 	users := []User{}
 	err = db.Debug().Model(&User{}).Limit(100).Find(&users).Error
@@ -110,6 +110,18 @@ func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
 		return &[]User{}, err
 	}
 	return &users, err
+}
+
+func (u *User) SingleUser(db *gorm.DB, uid uint32) (*User, error) {
+	var err error
+	err = db.Debug().Model(User{}).Where("id = ?", uid).Take(&u).Error
+	if err != nil {
+		return &User{}, nil
+	}
+	if gorm.IsRecordNotFoundError(err) {
+		return &User{}, errors.New("User Not Found")
+	}
+	return u, err
 }
 
 func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
@@ -121,9 +133,9 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 	}
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumn(
 		map[string]interface{}{
-			"password": u.Password,
-			"username": u.Username,
-			"email": u.Email,
+			"password":  u.Password,
+			"username":  u.Username,
+			"email":     u.Email,
 			"update_at": time.Now(),
 		},
 	)
@@ -145,4 +157,3 @@ func (u *User) DeleteUser(db *gorm.DB, uid uint32) (int64, error) {
 	}
 	return db.RowsAffected, nil
 }
-
