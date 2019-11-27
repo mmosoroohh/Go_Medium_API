@@ -43,7 +43,7 @@ func (server *Server) Initialize() {
 	}
 
 	if dbDriver == "postgres" {
-		DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s", dbHost, dbPort, dbUser, dbName)
+		DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", dbHost, dbPort, dbUser, dbName, dbPassword)
 		server.DB, err = gorm.Open(dbDriver, DBURL)
 		if err != nil {
 			fmt.Printf("Cannot connect to %s database", dbDriver)
