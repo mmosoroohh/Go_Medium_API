@@ -17,6 +17,7 @@
 # vendor/
 
 .env
+.idea/dataSources
 .idea/.gitignore
 .idea/Go_Medium_API.iml
 .idea/misc.xml

@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func Test_All_Users(t *testing.T) {
+func TestAllUsers(t *testing.T) {
 	err := refreshUserTable()
 	if err != nil {
 		log.Fatal(err)
@@ -26,7 +26,7 @@ func Test_All_Users(t *testing.T) {
 	assert.Equal(t, len(*users), 2)
 }
 
-func Test_Create_User(t *testing.T) {
+func TestCreateUser(t *testing.T) {
 	err := refreshUserTable()
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +47,7 @@ func Test_Create_User(t *testing.T) {
 	assert.Equal(t, newUser.Email, saveUser.Email)
 }
 
-func Test_Single_user(t *testing.T) {
+func TestSingleUser(t *testing.T) {
 	err := refreshUserTable()
 	if err != nil {
 		log.Fatal(err)
@@ -68,7 +68,7 @@ func Test_Single_user(t *testing.T) {
 	assert.Equal(t, singleUser.Username, person.Username)
 }
 
-func Test_Update_User(t *testing.T) {
+func TestUpdateUser(t *testing.T) {
 	err := refreshUserTable()
 	if err != nil {
 		log.Fatal(err)
@@ -96,7 +96,7 @@ func Test_Update_User(t *testing.T) {
 	assert.Equal(t, updatedUser.Username, updateUser.Username)
 }
 
-func Test_Delete_User(t *testing.T) {
+func TestDeleteUser(t *testing.T) {
 	err := refreshUserTable()
 	if err != nil {
 		log.Fatal(err)
