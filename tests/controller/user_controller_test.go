@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/mmosoroohh/Go_Medium_API/api/models"
 	"gopkg.in/go-playground/assert.v1"
 	"log"
 	"net/http"
@@ -88,4 +89,34 @@ func TestCreateUser(t *testing.T) {
 			assert.Equal(t, responseMap["error"], v.errorMessage)
 		}
 	}
+}
+
+func TestGetUsers(t *testing.T) {
+
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = seedUsers()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req, err := http.NewRequest("GET", "/users", nil)
+	if err != nil {
+		t.Errorf("Error occurred: %v\n", err)
+	}
+
+	rec := httptest.NewRecorder()
+	handler := http.HandlerFunc(server.GetUsers)
+	handler.ServeHTTP(rec, req)
+
+	var users []models.User
+	err = json.Unmarshal([]byte(rec.Body.String()), &users)
+	if err != nil {
+		log.Fatal("Error occurred converting to json: %v\n", err)
+	}
+	assert.Equal(t, rec.Code, http.StatusOK)
+	assert.Equal(t, len(users), 2)
 }
