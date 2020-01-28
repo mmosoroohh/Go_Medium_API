@@ -10,8 +10,8 @@
       <Owner>mmosoroohh</Owner>
       <IntrospectionStateNumber>613</IntrospectionStateNumber>
       <Current>1</Current>
-      <Relations>sequence|table|16433|16435|1
-sequence|table|16419|16421|1
+      <Relations>sequence|table|16419|16421|1
+sequence|table|16433|16435|1
 </Relations>
     </database>
     <database id="3" parent="1" name="medium_api_test">

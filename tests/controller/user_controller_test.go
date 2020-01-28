@@ -331,3 +331,104 @@ func TestUpdateUser(t *testing.T) {
 		}
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+
+	var AuthEmail, AuthPassword string
+	var AuthID uint32
+
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	people, err := seedUsers() // we need atleast two users to properly check the update
+	if err != nil {
+		log.Fatalf("Error Occurred seeding users: %v\n", err)
+	}
+
+	// Get only the first user and log the user in
+	for _, person := range people {
+		if person.ID == 2 {
+			continue
+		}
+		AuthID = person.ID
+		AuthEmail = person.Email
+		AuthPassword = "password" // Note that the password in the DB is already hashed, we want the password unhashed
+	}
+
+	// Login the user and get the Authentication token
+	token, err := server.SignIn(AuthEmail, AuthPassword)
+	if err != nil {
+		log.Fatalf("Error Occurred login user: %v\n", err)
+	}
+	tokenString := fmt.Sprintf("Bearer %v", token)
+
+	userSample := []struct {
+		id           string
+		tokenGiven   string
+		statusCode   int
+		errorMessage string
+	}{
+		{
+			// Convert int32 to int first before converting to string
+			id:           strconv.Itoa(int(AuthID)),
+			tokenGiven:   tokenString,
+			statusCode:   204,
+			errorMessage: "",
+		},
+		{
+			// No Token provided
+			id:           strconv.Itoa(int(AuthID)),
+			tokenGiven:   "",
+			statusCode:   401,
+			errorMessage: "Unauthorized",
+		},
+		{
+			// Incorrect Token provided
+			id:           strconv.Itoa(int(AuthID)),
+			tokenGiven:   "This token is incorrect",
+			statusCode:   401,
+			errorMessage: "Unauthorized",
+		},
+		{
+			// Unknown ID
+			id:         "unknown",
+			tokenGiven: tokenString,
+			statusCode: 400,
+		},
+		{
+			// Using User 1 token to login User 2
+			id:           strconv.Itoa(int(2)),
+			tokenGiven:   tokenString,
+			statusCode:   401,
+			errorMessage: "Unauthorized",
+		},
+	}
+
+	for _, v := range userSample {
+
+		req, err := http.NewRequest("GET", "/users", nil)
+		if err != nil {
+			t.Errorf("Error Occurred: %v\n", err)
+		}
+
+		req = mux.SetURLVars(req, map[string]string{"id": v.id})
+		rec := httptest.NewRecorder()
+		handler := http.HandlerFunc(server.DeleteUser)
+
+		req.Header.Set("Authorization", v.tokenGiven)
+
+		handler.ServeHTTP(rec, req)
+		assert.Equal(t, rec.Code, v.statusCode)
+
+		if v.statusCode == 401 && v.errorMessage != "" {
+			responseMap := make(map[string]interface{})
+			err = json.Unmarshal([]byte(rec.Body.String()), &responseMap)
+			if err != nil {
+				t.Errorf("Error occurred converting to json: %v", err)
+			}
+			assert.Equal(t, responseMap["error"], v.errorMessage)
+		}
+	}
+}
