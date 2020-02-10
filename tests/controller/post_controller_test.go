@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/mmosoroohh/Go_Medium_API/api/models"
 	"gopkg.in/go-playground/assert.v1"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -153,4 +155,65 @@ func TestGetPosts(t *testing.T) {
 
 	assert.Equal(t, rec.Code, http.StatusOK)
 	assert.Equal(t, len(posts), 2)
+}
+
+func TestSinglePost(t *testing.T) {
+
+	err := refreshUserAndPostTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	post, err := seedOneUserAndOnePost()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	postSample := []struct {
+		id           string
+		statusCode   int
+		title        string
+		content      string
+		author_id    uint32
+		errorMessage string
+	}{
+		{
+			id:         strconv.Itoa(int(post.ID)),
+			statusCode: 200,
+			title:      post.Title,
+			content:    post.Content,
+			author_id:  post.AuthorID,
+		},
+		{
+			id:         "unknown",
+			statusCode: 400,
+		},
+	}
+
+	for _, v := range postSample {
+
+		req, err := http.NewRequest("GET", "/posts", nil)
+		if err != nil {
+			t.Errorf("Error Occurred : %v\n", err)
+		}
+
+		req = mux.SetURLVars(req, map[string]string{"id": v.id})
+
+		rec := httptest.NewRecorder()
+		handler := http.HandlerFunc(server.GetPost)
+		handler.ServeHTTP(rec, req)
+
+		responseMap := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rec.Body.String()), &responseMap)
+		if err != nil {
+			log.Fatalf("Error Occurred converting to json: %v", err)
+		}
+		assert.Equal(t, rec.Code, v.statusCode)
+
+		if v.statusCode == 200 {
+			assert.Equal(t, post.Title, responseMap["title"])
+			assert.Equal(t, post.Content, responseMap["content"])
+			assert.Equal(t, float64(post.AuthorID), responseMap["author_id"])
+		}
+	}
 }
